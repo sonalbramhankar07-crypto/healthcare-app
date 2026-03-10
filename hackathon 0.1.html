@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>AI Emergency Triage Assistant</title>
+
+<style>
+body{
+font-family: Arial;
+background:#eef2f7;
+margin:0;
+}
+
+header{
+background:#0b5ed7;
+color:white;
+padding:15px;
+text-align:center;
+font-size:24px;
+font-weight:bold;
+}
+
+.container{
+display:flex;
+gap:20px;
+padding:20px;
+}
+
+.card{
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0 0 10px rgba(0,0,0,0.1);
+flex:1;
+}
+
+input,select{
+width:100%;
+padding:10px;
+margin:8px 0;
+border-radius:6px;
+border:1px solid #ccc;
+}
+
+button{
+background:#0b5ed7;
+color:white;
+border:none;
+padding:12px;
+width:100%;
+border-radius:6px;
+cursor:pointer;
+font-size:16px;
+}
+
+button:hover{
+background:#084298;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:10px;
+}
+
+th,td{
+padding:10px;
+border-bottom:1px solid #ddd;
+text-align:center;
+}
+
+.critical{
+background:#ff4d4d;
+color:white;
+font-weight:bold;
+}
+
+.moderate{
+background:#ffc107;
+font-weight:bold;
+}
+
+.low{
+background:#28a745;
+color:white;
+font-weight:bold;
+}
+
+.legend{
+margin-top:10px;
+font-size:14px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+🚑 AI Emergency Triage Assistant
+</header>
+
+<div class="container">
+
+<!-- Patient Form -->
+<div class="card">
+<h2>Patient Entry</h2>
+
+<input id="name" placeholder="Patient Name">
+
+<label>Heart Rate (bpm)</label>
+<input type="number" id="hr">
+
+<label>Temperature (°C)</label>
+<input type="number" id="temp">
+
+<label>Pain Level (1-10)</label>
+<input type="number" id="pain">
+
+<label>Symptom</label>
+<select id="symptom">
+<option value="normal">Normal</option>
+<option value="fever">Fever</option>
+<option value="breathing">Breathing Difficulty</option>
+<option value="chest">Chest Pain</option>
+<option value="injury">Injury</option>
+</select>
+
+<button onclick="addPatient()">Analyze & Add Patient</button>
+
+<p id="result"></p>
+</div>
+
+<!-- Dashboard -->
+<div class="card">
+<h2>Priority Dashboard</h2>
+
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Severity</th>
+<th>Priority</th>
+</tr>
+</thead>
+<tbody id="patientTable"></tbody>
+</table>
+
+<div class="legend">
+🔴 Critical | 🟡 Moderate | 🟢 Stable
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+let patients = [];
+
+function calculateSeverity(hr,temp,pain,symptom){
+
+let score = 0;
+
+// Heart rate logic
+if(hr > 120 || hr < 50) score += 3;
+else if(hr > 100) score += 2;
+
+// Temperature logic
+if(temp > 39) score += 3;
+else if(temp > 38) score += 2;
+
+// Pain logic
+if(pain >= 8) score += 3;
+else if(pain >=5) score += 2;
+
+// Symptom logic
+if(symptom === "chest" || symptom === "breathing")
+score += 4;
+else if(symptom === "injury")
+score += 2;
+else if(symptom === "fever")
+score += 1;
+
+// Severity classification
+if(score >= 8) return {level:"Critical", class:"critical"};
+if(score >=4) return {level:"Moderate", class:"moderate"};
+return {level:"Stable", class:"low"};
+}
+
+function addPatient(){
+
+let name = document.getElementById("name").value;
+let hr = parseInt(document.getElementById("hr").value);
+let temp = parseFloat(document.getElementById("temp").value);
+let pain = parseInt(document.getElementById("pain").value);
+let symptom = document.getElementById("symptom").value;
+
+if(!name || !hr || !temp || !pain){
+alert("Please fill all fields");
+return;
+}
+
+let severity = calculateSeverity(hr,temp,pain,symptom);
+
+patients.push({
+name:name,
+severity:severity.level,
+class:severity.class
+});
+
+// Sort priority automatically
+patients.sort((a,b)=>{
+const priority = {critical:1, moderate:2, low:3};
+return priority[a.class] - priority[b.class];
+});
+
+updateTable();
+
+document.getElementById("result").innerHTML =
+"AI Result: <b>"+severity.level+"</b> Priority Assigned";
+}
+
+function updateTable(){
+
+let table = document.getElementById("patientTable");
+table.innerHTML="";
+
+patients.forEach((p,index)=>{
+
+let row = `
+<tr class="${p.class}">
+<td>${p.name}</td>
+<td>${p.severity}</td>
+<td>${index+1}</td>
+</tr>
+`;
+
+table.innerHTML += row;
+});
+}
+
+</script>
+<a href="medicine-history.html"><b>click here for patient medical history</b></a>
+
+</body>
+</html>
